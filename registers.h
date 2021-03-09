@@ -1,5 +1,5 @@
-#ifndef REGISTERS_H
-#define REGISTERS_H
+#ifndef MPU6050_REGISTERS_H
+#define MPU6050_REGISTERS_H
 
 #define XGOFFS_TC        0x00 // Bit 7 PWR_MODE, bits 6:1 XG_OFFS_TC, bit 0 OTP_BNK_VLD                 
 #define YGOFFS_TC        0x01                                                                          

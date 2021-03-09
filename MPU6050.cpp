@@ -33,7 +33,7 @@ char MPU6050::readByte(uint8_t reg) {
 
 void MPU6050::readBytes(uint8_t reg, uint8_t count, uint8_t *dest) {
     
-    char data[32];
+    char data[14];
     char data_write[1] = {reg};
     i2c->write(MPU6050_ADDRESS, data_write, 1, true); // no stop
     i2c->read(MPU6050_ADDRESS, data, count, false);
@@ -78,43 +78,75 @@ float MPU6050::getARes() {
     return 0.0f;
 }
 
+void MPU6050::readData(float* acc, float* gyro, float* temp) {
+
+    uint8_t buffer[14];
+    readBytes(ACCEL_XOUT_H, 14, buffer); // Read all concatenated bytes
+
+    if (acc) {
+        makeAData(&buffer[0], acc);
+    }
+
+    if (gyro) {
+        makeAData(&buffer[8], gyro);
+    }
+
+    if (temp) {
+        *temp = makeTData(&buffer[6]);
+    }
+}
+
 void MPU6050::readAccelData(float* dest) {
 
-    uint8_t rawData[6]; // x/y/z accel register data stored here
-    readBytes(ACCEL_XOUT_H, 6, &rawData[0]); // Read the six raw data registers into data array
+    uint8_t buffer[6]; // x/y/z accel register data stored here
+    readBytes(ACCEL_XOUT_H, 6, buffer); // Read the six raw data registers into data array
 
-    for (size_t i = 0; i < 3; i++) {
-
-        // Turn the MSB and LSB into a signed 16-bit value:
-        uint16_t accel_counts = (int16_t)(((int16_t)rawData[i*2] << 8) | rawData[i*2+1]);
-
-        // Get actual g value, this depends on scale being set
-        dest[i] = (float)accel_counts * aRes - accelBias[i];
-    }
+    makeAData(buffer, dest);
 }
 
 void MPU6050::readGyroData(float* dest) {
 
-    uint8_t rawData[6]; // x/y/z gyro register data stored here
-    readBytes(GYRO_XOUT_H, 6, &rawData[0]); // Read the six raw data registers sequentially into
-                                            // data array
+    uint8_t buffer[6]; // x/y/z gyro register data stored here
+    readBytes(GYRO_XOUT_H, 6, buffer); // Read the six raw data registers sequentially into data array
 
-    for (size_t i = 0; i < 3; i++) {
-
-        // Turn the MSB and LSB into a signed 16-bit value
-        uint16_t gyro_counts = (int16_t)(((int16_t)rawData[2*i] << 8) | rawData[2*i+1]);
-
-        // Get actual gyro value, this depends on scale being set
-        dest[i] = (float)gyro_counts * gRes - gyroBias[i];
-    }
+    makeGData(buffer, dest);
 }
 
 float MPU6050::readTempData() {
-    uint8_t rawData[2]; // x/y/z register data stored here
-    readBytes(TEMP_OUT_H, 2, &rawData[0]); // Read the two raw data registers sequentially into
-                                           // data array
+    uint8_t buffer[2]; // x/y/z register data stored here
+    readBytes(TEMP_OUT_H, 2, buffer);
+
+    return makeTData(buffer);
+}
+
+void MPU6050::makeAData(const uint8_t* buffer, float* acc) {
+
+    for (size_t i = 0; i < 3; i++) {
+
+        // Turn the MSB and LSB into a signed 16-bit value:
+        int16_t counts = (((int16_t)buffer[i*2] << 8) | buffer[i*2+1]);
+
+        // Get actual g value, this depends on scale being set
+        acc[i] = (float)(counts) * aRes - accelBias[i];
+    }
+}
+
+void MPU6050::makeGData(const uint8_t* buffer, float* gyro) {
+
+    for (size_t i = 0; i < 3; i++) {
+
+        // Turn the MSB and LSB into a signed 16-bit value:
+        int16_t counts = (((int16_t)buffer[i*2] << 8) | buffer[i*2+1]);
+
+        // Get actual gyro value, this depends on scale being set
+        gyro[i] = (float)(counts) * gRes - gyroBias[i];
+    }
+}
+
+float MPU6050::makeTData(const uint8_t* buffer) {
+
     // Turn the MSB and LSB into a 16-bit value
-    uint16_t counts = (int16_t)(((int16_t)rawData[0]) << 8 | rawData[1]);
+    uint16_t counts = (int16_t)(((int16_t)buffer[0]) << 8 | buffer[1]);
 
     return ((float)counts) / 340.0f + 36.53f; // Temperature in degrees Centigrade
 }

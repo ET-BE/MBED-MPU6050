@@ -11,6 +11,7 @@
 #include "math.h"
 #include "mbed.h"
 #include "registers.h"
+#include <cstdint>
 
 #define ADO 0
 
@@ -43,6 +44,14 @@ public:
     char readByte(uint8_t reg);
 
     void readBytes(uint8_t reg, uint8_t count, uint8_t *dest);
+
+    /**
+     * Read acceleartion, gryo and temperature with a single I2C read.
+     *
+     * This is more effecient than running both methods independently.
+     */
+    void readData(float* acc = nullptr, float* gyro = nullptr,
+                  float* temp = nullptr);
 
     void readAccelData(float* destination);
 
@@ -86,6 +95,12 @@ private:
     float getARes();
 
     float getGRes();
+
+    void makeAData(const uint8_t* buffer, float* acc);
+
+    void makeGData(const uint8_t* buffer, float* gryo);
+
+    float makeTData(const uint8_t* buffer);
 
     // Specify sensor full scale
     Ascale scale_a;

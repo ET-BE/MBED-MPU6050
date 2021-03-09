@@ -1,13 +1,16 @@
+/**
+ * MPU6050 Library for the K64F with MBED OS 6
+ *
+ * This code is mostly taken from:
+ * https://github.com/kriswiner/MPU6050/tree/master/STM32F401
+ */
+
 #ifndef MPU6050_H
 #define MPU6050_H
 
 #include "math.h"
 #include "mbed.h"
 #include "registers.h"
-
-
-// This code is mostly taken from:
-// https://github.com/kriswiner/MPU6050/tree/master/STM32F401
 
 #define ADO 0
 
@@ -33,7 +36,7 @@ public:
     /**
      * Constructor
      */
-    MPU6050(I2C* i2c);
+    MPU6050(I2C* i2c_ptr);
 
     int writeByte(uint8_t reg, uint8_t data);
 
@@ -74,15 +77,15 @@ public:
     // filtering algorithms but is much less computationally intensive---it can be
     // performed on a 3.3 V Pro Mini operating at 8 MHz!
     void madgwickQuaternionUpdate(float ax, float ay, float az, float gx,
-                                                                float gy, float gz);
+                                  float gy, float gz);
+
+    I2C* i2c; /// Pointer to externally exisint I2C object
 
 private:
 
     float getARes();
 
     float getGRes();
-
-    I2C* i2c; /// Pointer to externally exisint I2C object
 
     // Specify sensor full scale
     Ascale scale_a;

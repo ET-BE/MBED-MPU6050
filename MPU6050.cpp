@@ -1,8 +1,8 @@
 #include "MPU6050.h"
 
-MPU6050::MPU6050(I2C* i2c) {
+MPU6050::MPU6050(I2C* i2c_ptr) {
 
-    i2c = i2c;
+    i2c = i2c_ptr;
 
     scale_a = AFS_2G;
     scale_g = GFS_250DPS;
@@ -24,19 +24,19 @@ int MPU6050::writeByte(uint8_t reg, uint8_t data) {
 }
 
 char MPU6050::readByte(uint8_t reg) {
-    char data; // `data` will store the register data
-    char data_write = reg;
-    i2c->write(MPU6050_ADDRESS, &data_write, 1, 1); // No stop
-    i2c->read(MPU6050_ADDRESS, &data, 1, 0);
-    return data;
+    char data[1]; // `data` will store the register data
+    char data_write[1] = {reg};
+    i2c->write(MPU6050_ADDRESS, data_write, 1, true); // No stop
+    i2c->read(MPU6050_ADDRESS, data, 1, false);
+    return data[0];
 }
 
 void MPU6050::readBytes(uint8_t reg, uint8_t count, uint8_t *dest) {
     
-    char data[14];
-    char data_write = reg;
-    i2c->write(MPU6050_ADDRESS, &data_write, 1, 1); // no stop
-    i2c->read(MPU6050_ADDRESS, data, count, 0);
+    char data[32];
+    char data_write[1] = {reg};
+    i2c->write(MPU6050_ADDRESS, data_write, 1, true); // no stop
+    i2c->read(MPU6050_ADDRESS, data, count, false);
     memcpy(dest, data, count);
 }
 

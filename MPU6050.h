@@ -29,6 +29,10 @@ enum Gscale { GFS_250DPS = 0, GFS_500DPS, GFS_1000DPS, GFS_2000DPS };
 
 /**
  * IMU class
+ *
+ * Most of the code from the original is kept. I personally
+ * don't know what a lot of it does, so I decided to just not
+ * touch it.
  */
 class MPU6050 {
 
@@ -65,6 +69,20 @@ public:
     void reset();
 
     void init();
+
+    /**
+     * Change the resolution of the sensor.
+     *
+     * Call `init` for the setting to take affect!
+     */
+    void setAScale(Ascale scale);
+
+    /**
+     * Change the resolution of the sensor.
+     *
+     * Call `init` for the setting to take affect!
+     */
+    void setGScale(Gscale scale);
 
     // Function which accumulates gyro and accelerometer data after device
     // initialization. It calculates the average of the at-rest readings and then

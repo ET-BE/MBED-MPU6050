@@ -88,7 +88,7 @@ void MPU6050::readData(float* acc, float* gyro, float* temp) {
     }
 
     if (gyro) {
-        makeAData(&buffer[8], gyro);
+        makeGData(&buffer[8], gyro);
     }
 
     if (temp) {

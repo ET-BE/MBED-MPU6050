@@ -2,6 +2,12 @@
 
 Library for the MPU6050 accelerometer/gyroscope. Written for the K64F running MBED OS 6.
 
+## Connect
+
+The connect the IMU, wire up the +5V and ground pins, and connect the I2C clock and data lines (pins PTE24 and PTE25 respectively).
+
+![mpu6050](mpu6050.jpg "IMU connected to the K64F")
+
 ## Example
 
 Use it like:

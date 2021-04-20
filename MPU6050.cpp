@@ -309,8 +309,8 @@ void MPU6050::calibrate() {
                                         // sensitivity
     writeByte(ACCEL_CONFIG, 0x00); // Set accelerometer full-scale to 2 g, maximum sensitivity
 
-    uint16_t gyrosensitivity = 131;        // = 131 LSB/degrees/sec
-    uint16_t accelsensitivity = 16384; // = 16384 LSB/g
+    float gyrosensitivity = 131.0f;        // = 131 LSB/degrees/sec
+    float accelsensitivity = 16384.0f; // = 16384 LSB/g
 
     // Configure FIFO to capture accelerometer and gyro data for bias
     // calculation
@@ -380,9 +380,9 @@ void MPU6050::calibrate() {
     writeByte(ZG_OFFS_USRL, data[5]);
 
     // Construct gyro bias in deg/s for later manual subtraction
-    gyroBias[0] = (float)gyro_bias[0] / (float)gyrosensitivity;
-    gyroBias[1] = (float)gyro_bias[1] / (float)gyrosensitivity;
-    gyroBias[2] = (float)gyro_bias[2] / (float)gyrosensitivity;
+    gyroBias[0] = (float)gyro_bias[0] / gyrosensitivity;
+    gyroBias[1] = (float)gyro_bias[1] / gyrosensitivity;
+    gyroBias[2] = (float)gyro_bias[2] / gyrosensitivity;
 
     // Construct the accelerometer biases for push to the hardware accelerometer
     // bias registers. These registers contain factory trim values which must be
@@ -443,9 +443,43 @@ void MPU6050::calibrate() {
 
     // Output scaled accelerometer biases for manual subtraction in the main
     // program
-    accelBias[0] = (float)accel_bias[0] / (float)accelsensitivity;
-    accelBias[1] = (float)accel_bias[1] / (float)accelsensitivity;
-    accelBias[2] = (float)accel_bias[2] / (float)accelsensitivity;
+    accelBias[0] = (float)accel_bias[0] / accelsensitivity;
+    accelBias[1] = (float)accel_bias[1] / accelsensitivity;
+    accelBias[2] = (float)accel_bias[2] / accelsensitivity;
+}
+
+// Basic calibration
+void MPU6050::calibrate_basic(size_t loops) {
+
+    float accelSum[3], gryoSum[3]; // New biases (cannot write to properties
+    // directly since they are being used by the read)
+
+    // Reset bias, as they are used by the read methods
+    for (size_t i = 0; i < 3; i++) {
+        accelBias[i] = 0.0f;
+        gyroBias[i] = 0.0f;
+
+        accelSum[i] = 0.0f;
+        gryoSum[i] = 0.0f;
+    }
+
+    float a[3] = {0.0f}, g[3] = {0.0f}; // Buffer for the reads
+
+    for (size_t i = 0; i < loops; i++) {
+        readData(a, g); // Perform combined read for a little speed boost
+
+        for (size_t j = 0; j < 3; j++) {
+            accelSum[j] += a[j];
+            gryoSum[j] += g[j];
+        }
+
+        thread_sleep_for(2); // Wait a bit
+    }
+
+    for (size_t j = 0; j < 3; j++) {
+        accelBias[j] = accelSum[j] / (float)loops;
+        gyroBias[j] = gryoSum[j] / (float)loops;
+    }
 }
 
 // Accelerometer and gyroscope self test; check calibration wrt factory

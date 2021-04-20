@@ -84,10 +84,24 @@ public:
      */
     void setGScale(Gscale scale);
 
-    // Function which accumulates gyro and accelerometer data after device
-    // initialization. It calculates the average of the at-rest readings and then
-    // loads the resulting offsets into accelerometer and gyro bias registers.
+    /**
+     * Function which accumulates gyro and accelerometer data after device
+     * initialization. It calculates the average of the at-rest readings and then
+     * loads the resulting offsets into accelerometer and gyro bias registers.
+     *
+     * I don't understand this method, I just copied it. Its seems overly complicated.
+     */
     void calibrate();
+
+    /**
+     * Calibrate the sensor in the current mode, assuming the sensor is stationary.
+     *
+     * No settings are changed before or after calibration.
+     * Measurements are done at 2ms loops.
+     *
+     * @param loops The number of measurements to take for calibration
+     */
+    void calibrate_basic(size_t loops = 50);
 
     // Accelerometer and gyroscope self test; check calibration wrt factory
     // settings
